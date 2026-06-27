@@ -1,0 +1,21 @@
+{
+  "id": "channel-wander",
+  "name": "频道漫游",
+  "version": "1.0.0",
+  "description": "频道漫游，无限发现音乐",
+  "author": "xiaotian2333",
+  "main": "index.js",
+  "path": "",
+  "repo": "https://github.com/xiaotian2333/EchoMusic-channel-wander",
+  "homepage": "https://github.com/xiaotian2333/EchoMusic-channel-wander",
+  "downloadUrl": "https://github.com/xiaotian2333/EchoMusic-channel-wander/archive/refs/heads/main.zip",
+  "tags": [
+    "wander"
+  ],
+  "capabilities": {
+    "localFiles": true
+  },
+  "requires": {
+    "echoMusicVersion": ">=2.2.7-beta.28"
+  }
+}
