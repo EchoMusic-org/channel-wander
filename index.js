@@ -5,18 +5,14 @@ export default async function (ctx) {
   let tagGroups = []
 
   async function loadTags() {
-    let localVersion = 0
-    let localData = []
-    let localOk = false
-
     try {
       const localPath = ctx.descriptor.directory + '/tags.json'
       const localResult = await ctx.fs.readTextFile(localPath)
       if (localResult.ok) {
-        localOk = true
         const parsed = JSON.parse(localResult.data)
-        localVersion = parsed.version || 0
-        localData = parsed.data || []
+        tagGroups = parsed.data || []
+        checkUpdate(parsed.version || 0, localPath)
+        return
       }
     } catch {
       /* 本地不存在或读取失败 */
@@ -26,25 +22,31 @@ export default async function (ctx) {
       const res = await ctx.net.fetch(TAGS_URL + '?t=' + Date.now())
       if (res.ok) {
         const remote = await res.json()
-        const remoteVersion = remote.version || 0
-        const remoteData = remote.data || []
-
-        if (!localOk || remoteVersion > localVersion) {
-          const localPath = ctx.descriptor.directory + '/tags.json'
-          await ctx.fs.writeFile(localPath, JSON.stringify(remote, null, 2))
-          tagGroups = remoteData
-        } else {
-          tagGroups = localData
-        }
-      } else {
-        tagGroups = localData
+        const localPath = ctx.descriptor.directory + '/tags.json'
+        await ctx.fs.writeFile(localPath, JSON.stringify(remote, null, 2))
+        tagGroups = remote.data || []
       }
     } catch {
-      tagGroups = localData
+      /* 静默 */
     }
   }
 
-  loadTags()
+  async function checkUpdate(localVersion, localPath) {
+    try {
+      const res = await ctx.net.fetch(TAGS_URL + '?t=' + Date.now())
+      if (res.ok) {
+        const remote = await res.json()
+        if ((remote.version || 0) > localVersion) {
+          await ctx.fs.writeFile(localPath, JSON.stringify(remote, null, 2), { overwrite: true })
+          tagGroups = remote.data || []
+        }
+      }
+    } catch {
+      /* 静默 */
+    }
+  }
+
+  await loadTags()
 
   const fetchedSongIds = new Set()
   const isLoading = ref(false)
