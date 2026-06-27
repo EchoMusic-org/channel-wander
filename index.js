@@ -19,7 +19,9 @@ export default async function (ctx) {
     }
 
     try {
-      const res = await ctx.net.fetch(TAGS_URL + '?t=' + Date.now())
+      const res = await ctx.net.fetch(TAGS_URL + '?t=' + Date.now(), {
+        headers: { 'User-Agent': 'EchoMusic-channel-wander/' + ctx.manifest.version },
+      })
       if (res.ok) {
         const remote = await res.json()
         const localPath = ctx.descriptor.directory + '/tags.json'
@@ -33,7 +35,9 @@ export default async function (ctx) {
 
   async function checkUpdate(localVersion, localPath) {
     try {
-      const res = await ctx.net.fetch(TAGS_URL + '?t=' + Date.now())
+      const res = await ctx.net.fetch(TAGS_URL + '?t=' + Date.now(), {
+        headers: { 'User-Agent': 'EchoMusic-channel-wander/' + ctx.manifest.version },
+      })
       if (res.ok) {
         const remote = await res.json()
         if ((remote.version || 0) > localVersion) {
