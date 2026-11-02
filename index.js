@@ -4,6 +4,21 @@ export default async function (ctx) {
   const TAGS_URL = 'https://oss.xt-url.com/EchoMusic/channel-wander/tags.json'
   let tagGroups = []
 
+  const todayStr = () => new Date().toISOString().slice(0, 10)
+
+  // 每日一次的后台更新检查：本地已有 tags.json 时 activate 不再强拉网络
+  // （cache-buster 会绕过 HTTP 缓存），改为 storage 记录日期、当日跳过、后台执行不阻塞
+  async function checkUpdateDaily(localVersion, localPath) {
+    try {
+      const last = await ctx.storage.get('lastUpdateDate')
+      if (last === todayStr()) return
+      await ctx.storage.set('lastUpdateDate', todayStr())
+      await checkUpdate(localVersion, localPath)
+    } catch {
+      /* 静默 */
+    }
+  }
+
   async function loadTags() {
     try {
       const localPath = ctx.descriptor.directory + '/tags.json'
@@ -11,7 +26,7 @@ export default async function (ctx) {
       if (localResult.ok) {
         const parsed = JSON.parse(localResult.data)
         tagGroups = parsed.data || []
-        checkUpdate(parsed.version || 0, localPath)
+        void checkUpdateDaily(parsed.version || 0, localPath)
         return
       }
     } catch {
